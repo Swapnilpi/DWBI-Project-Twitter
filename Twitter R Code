@@ -5,50 +5,24 @@ require(RCurl)
 require(ROAuth)
 library(plyr)
 library(stringr)
-
-
-list.pos.words <- scan("C:/Users/arjit Bhai/Documents/pos_words.txt",what = 'character',comment.char = ";")
-#print(list.pos.words)
-class(list.pos.words)
-list.pos.words <- scan("C:/Users/arjit Bhai/Documents/pos_words.txt",what = 'character',comment.char = "")
-list.neg.words <- scan("C:/Users/arjit Bhai/Documents/neg_words.txt",what = 'character',comment.char = "")
-#print(list.neg.words)
-
-
-score.sentiments <- function(sentence,list.pos.words,list.neg.words){
-
-#sentence <- "this is despise worst sad and lag and it can improve as well bad last"
-sentence <- gsub('[[:punct:]]',"",sentence)
-sentence <- gsub('[[:cntrl:]]',"",sentence)
-sentence <- gsub('\\d+',"",sentence)
-sentence <- tolower(sentence)
-#print(sentence)
-word.list <- strsplit(sentence,"\\s+")
-#print(word.list)
+list.post.words <- scan("C:/Users/Swapnil/Documents/pve_words.txt",what = 'character',comment.char = ";")
+class(list.post.words)
+list.post.words <- scan("C:/Users/Swapnil/Documents/pve_words.txt",what = 'character',comment.char = "")
+list.nve.words <- scan("C:/Users/Swapnil/Documents/nve_words.txt",what = 'character',comment.char = "")
+score.sentiments <- function(statement,list.post.words,list.nve.words){
+statement <- gsub('[[:punct:]]',"",statement)
+statement <- gsub('[[:cntrl:]]',"",statement)
+statement <- gsub('\\d+',"",statement)
+statement <- tolower(statement)
+word.list <- strsplit(statement,"\\s+")
 words <- unlist(word.list,list)
-#print(words)
-
-pos.matches <- match(words,list.pos.words)
-
-#print(pos.matches)
-is.pos.matches <- sum(!is.na(pos.matches))
-#print(is.pos.matches)
-
-
-neg.matches <- match(words,list.neg.words)
-#print(neg.matches)
-is.neg.matches <- sum(!is.na(neg.matches))
-#print(is.neg.matches)
-
-scores <- is.pos.matches - is.neg.matches
+pve_matches <- match(words,list.post.words)
+is.pve_matches <- sum(!is.na(pve_matches))
+nve_matches <- match(words,list.nve.words)
+is.nve_matches <- sum(!is.na(nve_matches))
+scores <- is.pve_matches - is.nve_matches
 return(scores)
 }
-
-
-
-
-
-#twitter settings
 consumerKey <- 'vvj2iO41GSoYpZ0zYxq2viJGc'
 reqURL <- 'https://api.twitter.com/oauth/request_token'
 accessURL <- 'https://api.twitter.com/oauth/access_token'
@@ -56,29 +30,17 @@ authURL <- 'https://api.twitter.com/oauth/authorize'
 consumerSecret <- 'yNPvb8haQDF6JPeoywrHhROX8Zuo2pAehrttUkSXQxeuwEs4gT'
 accessToken <- '978371128778510338-zWPwAxMoDGzwbvHwYVoT3jf51xhyieq'
 accessTokenSecret <- 'Q4hSbE5Sxpj18LRGnu47BTbloRmfbazAYwXV1I0YTjPDh'
-
 twitCred <- OAuthFactory$new(consumerKey =consumerKey,
                              consumerSecret=consumerSecret,
                              requestURL= reqURL,
                              accessURL =accessURL,
                              authURL =authURL)
 twitCred$handshake()
-
 setup_twitter_oauth(consumerKey,consumerSecret,accessToken,accessTokenSecret)
-
-tweet<- userTimeline("@UNEnvironment",n=100)
+tweet<- userTimeline("@water",n=500)
 tweet_df <- tbl_df(map_df(tweet,as.data.frame))
-final <- lapply(tweet_df$text,score.sentiments,list.pos.words=list.pos.words,list.neg.words=list.neg.words)
-final <- unlist(final,list)
-
-
-make_df <- data.frame(a=tweet_df$text,b=final)
-
-write.csv(make_df , file = "sample7.csv")
-
-
-
-
-
-  
-
+final_1 <- lapply(tweet_df$text,score.sentiments,list.post.words=list.post.words,list.nve.words=list.nve.words)
+final_1 <- unlist(final_1,list)
+df_1 <- data.frame(a=tweet_df$text,b=final_1)
+write.csv(df_1 , file = "Twitter_Data.csv")
+ 
